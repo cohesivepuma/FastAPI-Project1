@@ -29,7 +29,7 @@ router = APIRouter()
     # 我的理解是：这虽然在一个文件夹下，是一个小项目，但是中大项目都是有多个模块的，目的都是为了保证结构清晰，增强可读性和维护性，所以最好每个项目都要结构化
 async def register(request:Request):
     # 如果是get请求就返回一个注册页面模版
-    if request.method == 'get':
+    if request.method == 'GET':
         return templates.TemplateResponse('register.html',context={"request":request})
     else:
         # 如果是POST请求，写入数据
@@ -48,17 +48,15 @@ async def register(request:Request):
                 f.write(avatar_data)
         else:
             avatar_url = './static/img/default.png'
-
         user_list.append({'username':username,'password':password,'avatar':avatar_url,'age':age})
-
         #重新定向
-        return RedirectResponse('/login',status_code=301)
+        return RedirectResponse('/login',status_code=302)
         # 重新定向的地址(url,状态码)
 
 @router.route('/login',methods=['get','post'])
 async def login(request:Request):
     # 如果是get请求就返回一个注册页面模版
-    if request.method == 'get':
+    if request.method == 'GET':
         return templates.TemplateResponse('login.html',context={"request":request})
     else:
         form_data = await request.form()
@@ -67,18 +65,18 @@ async def login(request:Request):
         for user in user_list:
             if user['username'] == username and user['password'] == password:
                 request.session['username'] = username
-                return RedirectResponse('/', status_code=301)#跳转
-            else:
-                context = {
-                    'request':request,
-                    'errors':'用户名密码错误'
-                }
-                return templates.TemplateResponse('login.html',context=context) #重新加载页面
+                return RedirectResponse('/', status_code=302)#跳转
+
+        context = {
+            'request':request,
+            'errors':'用户名密码错误'
+        }
+        return templates.TemplateResponse('login.html',context=context) #重新加载页面
 
 @router.get('/logout')
 async def logout(request:Request):
     request.session.clear()
-    return RedirectResponse('/login', status_code=301)
+    return RedirectResponse('/login', status_code=302)
 
 @router.get('/')
 async def index(request:Request):
