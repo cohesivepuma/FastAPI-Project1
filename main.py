@@ -82,7 +82,8 @@ async def logout(request:Request):
 async def index(request:Request):
     if request.session.get('username'):
         context={
-            'request':request
+            'request':request,
+            "username":request.session.get("username")
         }
         return templates.TemplateResponse('home.html', context=context)
     else:
