@@ -4,9 +4,12 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
+from tortoise.contrib.fastapi import register_tortoise
+from settings import TORTOISE_ORM
+from models import User
 app = FastAPI()
 #1 引入静态模版文件
-
+register_tortoise(app,config=TORTOISE_ORM) #初始化数据库连接，生成模型与数据库之间的映射
 user_list=[
     {'username':'justin','password':'123456','avatar':'/static/img/default.png','age':33},
     {'username':'zhangsan','password':'123456','avatar':'/static/img/default.png','age':33},
@@ -48,7 +51,7 @@ async def register(request:Request):
                 f.write(avatar_data)
         else:
             avatar_url = './static/img/default.png'
-        user_list.append({'username':username,'password':password,'avatar':avatar_url,'age':age})
+        await User.create(username=username,password=password,age=age,avatar=avatar_url)
         #重新定向
         return RedirectResponse('/login',status_code=302)
         # 重新定向的地址(url,状态码)
@@ -62,11 +65,14 @@ async def login(request:Request):
         form_data = await request.form()
         username = form_data.get('username')
         password = form_data.get('password')
-        for user in user_list:
-            if user['username'] == username and user['password'] == password:
-                request.session['username'] = username
-                return RedirectResponse('/', status_code=302)#跳转
-
+        # for user in user_list:
+        #     if user['username'] == username and user['password'] == password:
+        #         request.session['username'] = username
+        #         return RedirectResponse('/', status_code=302)#跳转
+        user = User.filter(username=username,password=password).first()
+        if user:
+            request.session['username'] = username
+            return RedirectResponse('/', status_code=302)  # 跳转
         context = {
             'request':request,
             'errors':'用户名密码错误'
