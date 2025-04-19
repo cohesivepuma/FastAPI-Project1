@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>欢迎来到多人聊天室</h1>
+<form action="" onsubmit="sendMessage(event)">
+    {{name}}<input type="text" id="messageText" autocomplete="off"/>
+    <button>发送</button>
+</form>
+<ul id='messages'>
+</ul>
+
+</body>
+<script>
+    var ws = new WebSocket("ws://localhost:8000/ws/{{username}}");
+    // 服务端返回数据，就会触发这个执行
+    ws.onmessage = function (event) {
+        var messages = document.getElementById('messages')
+        var message = document.createElement('li')
+        var content = document.createTextNode(event.data)
+        message.appendChild(content)
+        messages.appendChild(message)
+    };
+
+    // 点击发送按钮，就会触发它执行
+    function sendMessage(event) {
+        var input = document.getElementById("messageText")
+        ws.send(input.value)
+        input.value = ''
+        event.preventDefault() // 阻止form表单提交
+    }
+</script>
+</html>
